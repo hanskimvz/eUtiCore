@@ -33,8 +33,18 @@ from functions import CONFIG
 HTTP_HOST = CONFIG['HTTP_SERVER']['host']
 HTTP_PORT = CONFIG['HTTP_SERVER']['port']
 
+
+VERSION = "3.0.0"
+
+
 # from functions import (HTTP_HOST, HTTP_PORT)
-from web_server.proc_api import proc_api
+if VERSION.startswith("1."):
+  from web_server.proc_api_v1 import proc_api
+elif VERSION.startswith("2."):
+  from web_server.proc_api_v2 import proc_api
+elif VERSION.startswith("3."):
+  from web_server.proc_api_v3 import proc_api
+
 
 # document_root = '../vue_codes/dist/'
 
@@ -79,7 +89,6 @@ def checkUserAuth(post_data):
     
   # 로그인 API 또는 회원가입 API는 인증 없이 접근 가능
   if post_data.get('action') == 'login' or post_data.get('action') == 'register':
-
     return True
     
   # login_id와 userseq로 인증
@@ -162,57 +171,53 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
       print (post_data)
       arr_post = json.loads(post_data)
 
-      if url_parts.path.startswith("/api/login"):
-        # 로그인 API는 인증 없이 접근 가능
-        type_t, body = proc_api(url_parts, arr_post)
-        self.send_response(200)
-
-      elif url_parts.path.startswith("/api"):
-        # POST 데이터를 통한 인증 확인
-        auth_result = checkUserAuth(arr_post)
-        print("Auth result:", auth_result)
-        
-        if auth_result:
-          type_t, body = proc_api(url_parts, arr_post)
-          # API 응답에서 코드 확인
-          try:
-            response_data = json.loads(body)
-            if isinstance(response_data, dict) and 'code' in response_data:
-              if response_data['code'] == 403:
-                self.send_response(403)
-              elif response_data['code'] == 404:
-                self.send_response(404)
-              else:
-                self.send_response(200)
-            else:
-              self.send_response(200)
-          except:
-            self.send_response(200)
-        else:
-          type_t = 'text/json'
-          body = json.dumps({
-            'code': 403, 
-            'message': 'Unauthorized. Please include valid login_id and userseq in the request body'
-          }).encode()
-          self.send_response(403)  # 인증 실패는 403 Forbidden
-      else:
+      if not url_parts.path.startswith("/api"):
         type_t = 'text/json'
         body = json.dumps({'code': 404, 'message':'Not found'}).encode()
         self.send_response(404)  # 경로를 찾을 수 없으면 404 Not Found
+        return
+
+      if url_parts.path.startswith("/api/login") or url_parts.path.startswith("/api/logout") or url_parts.path.startswith("/api/register"):
+        auth_result = True # 로그인 API는 인증 없이 접근 가능
+      else:
+        auth_result = checkUserAuth(arr_post)
+
+      if not auth_result:
+        type_t = 'text/json'
+        body = json.dumps({'code': 403, 'message':'Unauthorized'}).encode()
+        self.send_response(403) # 인증 실패는 403 Forbidden
+      
+      else:
+        type_t, body = proc_api(url_parts, arr_post)
+        # API 응답에서 코드 확인
+        try:
+          response_data = json.loads(body)
+          if isinstance(response_data, dict) and 'code' in response_data:
+            if response_data['code'] == 403:
+              self.send_response(403)
+            elif response_data['code'] == 404:
+              self.send_response(404)
+            else:
+              self.send_response(200)
+          else:
+            self.send_response(200)
+        except:
+          self.send_response(200)
 
     except json.JSONDecodeError:
       type_t = 'text/json'
       body = json.dumps({'code': 400, 'message': 'Invalid JSON'}).encode()
       self.send_response(400)  # 잘못된 JSON 형식은 400 Bad Request
-    except Exception as e:
-      type_t = 'text/json'
-      body = json.dumps({'code': 500, 'message': str(e)}).encode()
-      self.send_response(500)  # 서버 오류는 500 Internal Server Error
+
+    # except Exception as e:
+    #   type_t = 'text/json'
+    #   body = json.dumps({'code': 500, 'message': str(e)}).encode()
+    #   self.send_response(500)  # 서버 오류는 500 Internal Server Error
 
     self.send_header('Content-Type', type_t)
     self.send_header("Access-Control-Allow-Origin", "*")  # CORS 허용
     self.end_headers()
-    print ('final body', body)
+    # print ('final body', body)
     self.wfile.write(body)
 
 

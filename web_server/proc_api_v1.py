@@ -28,21 +28,12 @@ from urllib.parse import urlparse, urlsplit, parse_qsl, uses_params
 import os, sys, time
 import json
 
-# DB_STRUCTURE = "MYSQL"
-DB_STRUCTURE = "MONGO"
+from web_server.v1.users import procLogin, listUsers, updateUser, registerUser
+from web_server.v1.devices import  listDevices, updateDeviceInfo, updateReleaseProduct
+from web_server.v1.query_db import getCountData, getPlaceData, getTrafficData, siteMap, queryDatabase, getLanguagePack, getWebConfig
+from web_server.v1.update_db import updateLanguage, updateWebConfig, updateDatabase
+from web_server.v1.web_config import getWebConfig, updateWebConfig
 
-if DB_STRUCTURE == "MYSQL":
-  from web_server.v1.users import procLogin, listUsers, updateUser, registerUser
-  from web_server.v1.devices import  listDevices, updateDeviceInfo, updateReleaseProduct
-  from web_server.v1.query_db import getCountData, getPlaceData, getTrafficData, siteMap, queryDatabase, getLanguagePack, getWebConfig
-  from web_server.v1.update_db import updateLanguage, updateWebConfig, updateDatabase
-  from web_server.v1.web_config import getWebConfig, updateWebConfig
-
-elif DB_STRUCTURE == "MONGO":
-  from web_server.v2.users import procLogin, listUsers, updateUser, registerUser
-  from web_server.v2.devices import  listDevices, updateDeviceInfo, updateReleaseProduct, updateInstallDeviceInfo
-  from web_server.v2.recv_data import getRecvData, getUsageData
-  from web_server.v2.database import getDatabase, insertDatabase, upsertDatabase
 
 def getJsonFromFile(filename, cat = "systemlog"):
   ts_start = time.time()

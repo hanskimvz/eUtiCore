@@ -24,43 +24,23 @@
 
 
 import os, time, sys
-# from http.client import HTTPConnection
 import socket
 import re, base64, struct
-# from urllib.parse import urlparse, parse_qsl, unquote
 import threading
-# import pymysql
 import logging, logging.handlers
-import sqlite3
-import signal
+
 import json
-import requests
-from requests.auth import HTTPBasicAuth, HTTPDigestAuth
-import optparse
-from pymongo import MongoClient
 
-# import configparser
+try:
+	import pymysql
+except ImportError:
+	pass
 
-# config_object = configparser.ConfigParser()
-# with open ('config.ini', 'r') as f:
-#   config_object.read_file(f)
-# output_dict = dict()
-# sections=config_object.sections()
-# for section in sections:
-#     items=config_object.items(section)
-#     output_dict[section]=dict(items)
-# # print(output_dict)
-# MYSQL = output_dict['MYSQL']
-# HTTP_HOST = output_dict['HTTP_SERVER']['host']
-# HTTP_PORT = int(output_dict['HTTP_SERVER']['port'])
-# SERVER_HOST = output_dict['SERVER']['host']
-# SERVER_PORT = int(output_dict['SERVER']['port'])
+try:
+	from pymongo import MongoClient
+except ImportError:
+	pass
 
-# TZ_OFFSET = int(output_dict['TIMEZONE']['tz_offset'])
-# del(output_dict)
-
-
-# CONFIG_FILE = "config.json"
 CONFIG_FILE = "./gasDataServer/config.json"
 
 def loadConfig():
