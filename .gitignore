@@ -1,0 +1,7 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+__pycache__
+.vscode
